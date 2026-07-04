@@ -1,6 +1,6 @@
-import { Injectable, Post, Body, Controller } from '@nestjs/common';
+import { Post, Body, Controller } from '@nestjs/common';
 import { RegisterDTO, RegisterResponseDTO } from './DTOs/register.dto';
-import { LoginDTO, LoginResponseDTO } from './DTOs/login.dto';
+import { LoginDTO, LoginJWTResponseDTO } from './DTOs/login.dto';
 import { AuthService } from './auth.service';
 
 @Controller('auth')
@@ -13,7 +13,7 @@ export class AuthController {
   }
 
   @Post('login')
-  async login(@Body() dto: LoginDTO): Promise<LoginResponseDTO> {
+  async login(@Body() dto: LoginDTO): Promise<LoginJWTResponseDTO> {
     return this.authService.login(dto);
   }
 }

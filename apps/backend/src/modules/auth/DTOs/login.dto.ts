@@ -9,5 +9,11 @@ export class LoginDTO {
 
 export class LoginResponseDTO {
   id!: string;
-  email!: string;
+  displayName?: string;
+  activeAccount?: string;
+}
+
+export class LoginJWTResponseDTO extends LoginResponseDTO {
+  accessToken!: string;
+  refreshToken!: string;
 }

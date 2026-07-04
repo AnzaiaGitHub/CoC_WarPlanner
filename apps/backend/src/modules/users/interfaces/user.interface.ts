@@ -1,8 +1,9 @@
 export interface User {
+  createdAt: Date;
   id: string;
   email: string;
-  displayName?: string;
   passwordHash: string;
-  createdAt: Date;
-  ownedAccounts: string[]; // Array of account Tags owned by the user
+  displayName?: string;
+  activeAccount?: string; // Tag of the active account for the user
+  claimedAccounts: string[]; // Array of account Tags owned by the user
 }

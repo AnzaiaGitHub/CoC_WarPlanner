@@ -3,6 +3,18 @@ import { AuthService } from './auth.service';
 import { PasswordService } from './password.service';
 import { UsersService } from '../users/users.service';
 
+const jwtServiceMock = {
+  sign: jest.fn().mockReturnValue('access-token'),
+};
+
+const configServiceMock = {
+  get: jest.fn().mockImplementation((key: string) => {
+    if (key === 'ACCESS_TOKEN_EXPIRATION_SECONDS') return 3600;
+    if (key === 'REFRESH_TOKEN_EXPIRATION_SECONDS') return 604800;
+    return null;
+  }),
+};
+
 describe('AuthService Register', () => {
   let service: AuthService;
   let usersService: jest.Mocked<UsersService>;
@@ -19,7 +31,7 @@ describe('AuthService Register', () => {
       compare: jest.fn(),
     } as unknown as jest.Mocked<PasswordService>;
 
-    service = new AuthService(usersService, passwordService);
+    service = new AuthService(usersService, passwordService, jwtServiceMock as any, configServiceMock as any);
   });
 
   it('registers a new user with a new email', async () => {
@@ -93,7 +105,7 @@ describe('AuthService Login', () => {
       compare: jest.fn(),
     } as unknown as jest.Mocked<PasswordService>;
 
-    service = new AuthService(usersService, passwordService);
+    service = new AuthService(usersService, passwordService, jwtServiceMock as any, configServiceMock as any);
   });
 
   it('logs in successfully with valid credentials', async () => {
@@ -108,7 +120,17 @@ describe('AuthService Login', () => {
 
     expect(usersService.findByEmail).toHaveBeenCalledWith('valid@example.com');
     expect(passwordService.compare).toHaveBeenCalledWith('strongPassword123', 'hashed-password');
-    expect(result).toEqual({ id: 'user-1', email: 'valid@example.com' });
+    expect(result).toEqual({ id: 'user-1', displayName: undefined, accessToken: 'access-token', refreshToken: 'access-token' });
+    expect(jwtServiceMock.sign).toHaveBeenNthCalledWith(
+      1,
+      { sub: 'user-1' },
+      expect.objectContaining({ expiresIn: expect.any(Number) }),
+    );
+    expect(jwtServiceMock.sign).toHaveBeenNthCalledWith(
+      2,
+      { sub: 'user-1' },
+      expect.objectContaining({ expiresIn: expect.any(Number) }),
+    );
   });
 
   it('rejects login with invalid email', async () => {

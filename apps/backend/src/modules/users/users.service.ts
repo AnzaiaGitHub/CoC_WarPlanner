@@ -2,11 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { User } from './interfaces/user.interface';
 import { randomUUID } from 'crypto';
 import { RegisterResponseDTO } from '../auth/DTOs/register.dto';
-
-type UserCreationData = {
-  email: string;
-  passwordHash: string;
-};
+import { UserCreationData } from './types/UserCreationData';
 
 @Injectable()
 export class UsersService {
@@ -22,7 +18,8 @@ export class UsersService {
       email: email,
       passwordHash: passwordHash,
       createdAt: new Date(),
-      ownedAccounts: [],
+      activeAccount: undefined,
+      claimedAccounts: [],
     };
     this.users.push(newUser);
     return {id: newUser.id, email: newUser.email};
