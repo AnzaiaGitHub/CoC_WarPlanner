@@ -3,11 +3,16 @@ import { User } from './interfaces/user.interface';
 import { randomUUID } from 'crypto';
 import { RegisterResponseDTO } from '../auth/DTOs/register.dto';
 
+type UserCreationData = {
+  email: string;
+  passwordHash: string;
+};
+
 @Injectable()
 export class UsersService {
   private users: User[] = []; // In-memory storage for users
 
-  create(email: string, passwordHash: string): RegisterResponseDTO {
+  create({ email, passwordHash }: UserCreationData): RegisterResponseDTO {
     if(this.findByEmail(email)) {
       throw new Error('User with this email already exists');
     }

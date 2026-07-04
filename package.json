@@ -3,6 +3,7 @@
     "bcrypt": "^6.0.0"
   },
   "devDependencies": {
-    "@types/bcrypt": "^6.0.0"
+    "@types/bcrypt": "^6.0.0",
+    "@types/jest": "^30.0.0"
   }
 }
