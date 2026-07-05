@@ -3,7 +3,7 @@ export interface User {
   id: string;
   email: string;
   passwordHash: string;
-  displayName?: string;
-  activeAccount?: string; // Tag of the active account for the user
+  displayName: string | null;
+  activeAccount: string | null; // Tag of the active account for the user
   claimedAccounts: string[]; // Array of account Tags owned by the user
 }

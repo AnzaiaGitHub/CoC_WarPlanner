@@ -1,17 +1,12 @@
-import { Controller, Injectable } from '@nestjs/common';
+import { Controller, Injectable, Post, UseGuards, Body, Get } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport/dist/auth.guard';
+import { UserUpdateDTO } from './DTOs/UserUpdate.dto';
 
-@Injectable()
 @Controller('users')
 export class UsersController {
-  createUser(): string {
-    return 'User created successfully';
-  }
-
-  getUser(): string {
-    return 'User retrieved successfully';
-  }
-
-  getMockedUser(): string {
-    return 'Mocked user retrieved successfully';
+  @Get('profile')
+  @UseGuards(AuthGuard('jwt'))
+  getProfile(): string {
+    return 'This is the user profile.';
   }
 }

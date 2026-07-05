@@ -18,7 +18,8 @@ export class UsersService {
       email: email,
       passwordHash: passwordHash,
       createdAt: new Date(),
-      activeAccount: undefined,
+      displayName: null,
+      activeAccount: null,
       claimedAccounts: [],
     };
     this.users.push(newUser);

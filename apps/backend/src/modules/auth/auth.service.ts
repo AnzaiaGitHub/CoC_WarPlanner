@@ -5,9 +5,9 @@ import { UsersService } from '../users/users.service';
 import { PasswordService } from './password.service';
 import { LoginDTO, LoginJWTResponseDTO } from './DTOs/login.dto';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
 import { JWT_Payload } from './types/JWT-Payload';
 import { JWT_Tokens } from './types/JWT-Tokens';
+import { AppConfigService } from 'src/config/app-config.service';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +15,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly passwordService: PasswordService,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService
+    private readonly appConfigService: AppConfigService
   ) {}
 
   async register(dto: RegisterDTO): Promise<RegisterResponseDTO> {
@@ -23,7 +23,6 @@ export class AuthService {
     const errors = await validate(registerDto);
 
     if (errors.length > 0) {
-      console.error('Validation errors:', errors);
       throw new BadRequestException(errors);
     }
 
@@ -45,18 +44,18 @@ export class AuthService {
     const payload = { sub: user.id };
     const {accessToken, refreshToken} = this.jwtSign(payload);
 
-    return { id: user.id, displayName: user.displayName, accessToken, refreshToken };
+    return { id: user.id, displayName: user.displayName!, accessToken, refreshToken };
   }
 
   private jwtSign(payload: JWT_Payload): JWT_Tokens {
     const accessToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<number>('ACCESS_TOKEN_EXPIRATION_SECONDS', 3600),
-      secret: this.configService.get<string>('ACCESS_TOKEN_SECRET', 'default_access_token_secret'),
+      expiresIn: this.appConfigService.accessTokenExpiration,
+      secret: this.appConfigService.accessTokenSecret,
     });
 
     const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: this.configService.get<number>('REFRESH_TOKEN_EXPIRATION_SECONDS', 604800),
-      secret: this.configService.get<string>('REFRESH_TOKEN_SECRET', 'default_refresh_token_secret'),
+      expiresIn: this.appConfigService.refreshTokenExpiration,
+      secret: this.appConfigService.refreshTokenSecret,
     });
 
     return { accessToken, refreshToken };

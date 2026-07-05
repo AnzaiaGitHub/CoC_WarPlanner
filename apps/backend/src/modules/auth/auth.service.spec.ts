@@ -2,23 +2,17 @@ import { BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PasswordService } from './password.service';
 import { UsersService } from '../users/users.service';
+import { AppConfigService } from 'src/config/app-config.service';
 
 const jwtServiceMock = {
   sign: jest.fn().mockReturnValue('access-token'),
-};
-
-const configServiceMock = {
-  get: jest.fn().mockImplementation((key: string) => {
-    if (key === 'ACCESS_TOKEN_EXPIRATION_SECONDS') return 3600;
-    if (key === 'REFRESH_TOKEN_EXPIRATION_SECONDS') return 604800;
-    return null;
-  }),
 };
 
 describe('AuthService Register', () => {
   let service: AuthService;
   let usersService: jest.Mocked<UsersService>;
   let passwordService: jest.Mocked<PasswordService>;
+  let appConfigService: jest.Mocked<AppConfigService>;
 
   beforeEach(() => {
     usersService = {
@@ -31,7 +25,7 @@ describe('AuthService Register', () => {
       compare: jest.fn(),
     } as unknown as jest.Mocked<PasswordService>;
 
-    service = new AuthService(usersService, passwordService, jwtServiceMock as any, configServiceMock as any);
+    service = new AuthService(usersService, passwordService, jwtServiceMock as any, {} as any);
   });
 
   it('registers a new user with a new email', async () => {
@@ -95,6 +89,7 @@ describe('AuthService Login', () => {
   let service: AuthService;
   let usersService: jest.Mocked<UsersService>;
   let passwordService: jest.Mocked<PasswordService>;
+  let appConfigService: jest.Mocked<AppConfigService>;
 
   beforeEach(() => {
     usersService = {
@@ -105,13 +100,21 @@ describe('AuthService Login', () => {
       compare: jest.fn(),
     } as unknown as jest.Mocked<PasswordService>;
 
-    service = new AuthService(usersService, passwordService, jwtServiceMock as any, configServiceMock as any);
+    appConfigService = {
+      accessTokenSecret: "access-token-secret",
+      accessTokenExpiration: "15m",
+      refreshTokenSecret: "refresh-token-secret",
+      refreshTokenExpiration: "7d",
+    } as unknown as AppConfigService;
+
+    service = new AuthService(usersService, passwordService, jwtServiceMock as any, appConfigService as any);
   });
 
   it('logs in successfully with valid credentials', async () => {
     usersService.findByEmail.mockReturnValue({
       id: 'user-1',
       email: 'valid@example.com',
+      displayName: null,
       passwordHash: 'hashed-password',
     } as any);
     passwordService.compare.mockResolvedValue(true);
@@ -120,16 +123,16 @@ describe('AuthService Login', () => {
 
     expect(usersService.findByEmail).toHaveBeenCalledWith('valid@example.com');
     expect(passwordService.compare).toHaveBeenCalledWith('strongPassword123', 'hashed-password');
-    expect(result).toEqual({ id: 'user-1', displayName: undefined, accessToken: 'access-token', refreshToken: 'access-token' });
+    expect(result).toEqual({ id: 'user-1', displayName: null, accessToken: 'access-token', refreshToken: 'access-token' });
     expect(jwtServiceMock.sign).toHaveBeenNthCalledWith(
       1,
       { sub: 'user-1' },
-      expect.objectContaining({ expiresIn: expect.any(Number) }),
+      expect.objectContaining({ expiresIn: expect.any(String) }),
     );
     expect(jwtServiceMock.sign).toHaveBeenNthCalledWith(
       2,
       { sub: 'user-1' },
-      expect.objectContaining({ expiresIn: expect.any(Number) }),
+      expect.objectContaining({ expiresIn: expect.any(String) }),
     );
   });
 
@@ -152,4 +155,3 @@ describe('AuthService Login', () => {
     await expect(service.login({ email: 'valid@example.com', password: 'wrongPassword' })).rejects.toThrow(errorMessage);
   });
 });
-
